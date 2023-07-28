@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
-import { Button } from "antd";
+import DebtList from './components/DebtList';
 
-function App() {
-  return (
-        <Button>sadf</Button>
-  );
-}
+const App: React.FC = () => {
+    return <DebtList />;
+};
 
 export default App;
