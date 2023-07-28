@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Table, { ColumnsType } from 'antd/es/table';
-import { Space, Typography, Modal } from 'antd';
+import { Space, Typography, Modal, Tag } from 'antd';
 import axios from 'axios';
 import DebtDetail from '../DebtDetail';
 import DebtEdit from '../DebtEdit';
 import TryCalc from '../TryCalc';
+import { calcTry } from '../../utils/calc.util';
+import dayjs from 'dayjs';
 const { Text } = Typography;
 const { info } = Modal;
 
@@ -24,6 +26,19 @@ const DebtList: React.FC = () => {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
+            render: (_, record) => {
+                const isReturnDone =
+                    record.totalAmount -
+                        record.repayment.reduce((pre, cur) => pre + +cur.amount, 0) <=
+                    0;
+                return isReturnDone ? (
+                    <Tag bordered={false} color="success">
+                        {record.name}
+                    </Tag>
+                ) : (
+                    record.name
+                );
+            },
         },
         {
             title: 'borrowingDate',
@@ -41,15 +56,41 @@ const DebtList: React.FC = () => {
             key: 'repayment',
             dataIndex: 'repayment',
             render: (_, { repayment }) => (
-                <>{repayment.reduce((pre, cur) => +pre + +cur.amount, 0)}</>
+                <>{repayment.reduce((pre, cur) => pre + cur.amount, 0)}</>
             ),
+            sorter: (a, b) => {
+                const resultA = a.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                const resultB = b.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                return resultA - resultB;
+            },
         },
         {
             title: 'result',
             key: 'id',
             dataIndex: 'result',
             render: (_, { repayment, totalAmount }) => {
-                return +totalAmount - +repayment.reduce((pre, cur) => +pre + +cur.amount, 0);
+                return +totalAmount - +repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+            },
+            sorter: (a, b) => {
+                const resultA =
+                    a.totalAmount - +a.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                const resultB =
+                    b.totalAmount - +b.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                return resultA - resultB;
+            },
+        },
+        {
+            title: 'tryCalc',
+            key: 'tryCalc',
+            dataIndex: 'tryCalc',
+            render: (_, record) => {
+                const { rate } = record;
+                return calcTry(rate, record, dayjs().format());
+            },
+            sorter: (a, b) => {
+                const resultA = calcTry(a.rate, a, dayjs().format());
+                const resultB = calcTry(b.rate, b, dayjs().format());
+                return resultA - resultB;
             },
         },
         {
@@ -95,7 +136,15 @@ const DebtList: React.FC = () => {
 
     const handleSave = (values: DataType) => {
         const newData = debts.map((item: DataType) =>
-            item.id === editingItem?.id ? { ...item, ...values } : item
+            item.id === editingItem?.id
+                ? {
+                      ...item,
+                      ...{
+                          ...values,
+                          borrowingDate: dayjs(values.borrowingDate).format('YYYY-MM-DD'),
+                      },
+                  }
+                : item
         );
         setDebts(newData);
         setEditModalVisible(false);
@@ -110,12 +159,18 @@ const DebtList: React.FC = () => {
                     summary={(pageData) => {
                         let totalBorrow = 0;
                         let totalRepayment = 0;
+                        let totalInterest = 0;
 
-                        pageData.forEach(({ totalAmount, repayment }) => {
-                            totalBorrow += totalAmount;
-                            totalRepayment += repayment.reduce((pre, cur) => pre + cur.amount, 0);
+                        pageData.forEach((item) => {
+                            totalBorrow += item.totalAmount;
+                            totalRepayment += item.repayment.reduce(
+                                (pre, cur) => pre + cur.amount,
+                                0
+                            );
+                            totalInterest += calcTry(item.rate, item, dayjs().format());
                         });
                         const totalResult = totalBorrow - totalRepayment;
+                        totalInterest = Number(totalInterest.toFixed(2));
 
                         return (
                             <>
@@ -130,6 +185,9 @@ const DebtList: React.FC = () => {
                                     </Table.Summary.Cell>
                                     <Table.Summary.Cell index={4}>
                                         <Text>{totalResult}</Text>
+                                    </Table.Summary.Cell>
+                                    <Table.Summary.Cell index={5}>
+                                        <Text>{totalInterest}</Text>
                                     </Table.Summary.Cell>
                                 </Table.Summary.Row>
                             </>

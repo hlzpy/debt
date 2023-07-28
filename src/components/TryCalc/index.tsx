@@ -2,6 +2,7 @@ import { Button, DatePicker, Descriptions, Form, Input, InputNumber, Modal } fro
 import React, { useEffect, useState } from 'react';
 import { DataType } from '../DebtList';
 import dayjs from 'dayjs';
+import { calcTry } from '../../utils/calc.util';
 
 const TryCalc = ({
     visible,
@@ -23,31 +24,32 @@ const TryCalc = ({
     }, [editingItem]);
 
     const tryCalc = () => {
-        const { totalAmount, repayment, borrowingDate } = editingItem;
-        let loanAmount = totalAmount; // 总借款金额
-        let totalInterest = 0;
         const rate = form.getFieldValue('rate');
         const resultDate = form.getFieldValue('borrowingDate');
-        const repaidMount = repayment.reduce((p: any, c: any) => p + c.amount, 0);
-        const repayments = [
-            ...repayment,
-            repaidMount >= totalAmount
-                ? {}
-                : {
-                      date: dayjs(resultDate).format(),
-                      amount: totalAmount - repaidMount,
-                  },
-        ].sort((a: any, b: any) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf());
-        repayments.forEach((item, index) => {
-            const day = dayjs(item.date).diff(
-                index === 0 ? borrowingDate : repayments[index - 1].date,
-                'day'
-            );
-            totalInterest += ((loanAmount * rate) / 100) * (day / 365);
-            loanAmount -= item.amount;
-        });
+        // const { totalAmount, repayment, borrowingDate } = editingItem;
+        // let loanAmount = totalAmount; // 总借款金额
+        // let totalInterest = 0;
+        // const repaidMount = repayment.reduce((p: any, c: any) => p + c.amount, 0);
+        // const repayments = [
+        //     ...repayment,
+        //     repaidMount >= totalAmount
+        //         ? {}
+        //         : {
+        //               date: dayjs(resultDate).format(),
+        //               amount: totalAmount - repaidMount,
+        //           },
+        // ].sort((a: any, b: any) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf());
+        // repayments.forEach((item, index) => {
+        //     const day = dayjs(item.date).diff(
+        //         index === 0 ? borrowingDate : repayments[index - 1].date,
+        //         'day'
+        //     );
+        //     totalInterest += ((loanAmount * rate) / 100) * (day / 365);
+        //     loanAmount -= item.amount;
+        // });
 
-        setResult(+Number(totalInterest * 10000).toFixed(2));
+        // setResult(+Number(totalInterest * 10000).toFixed(2));
+        setResult(calcTry(rate, editingItem, resultDate));
     };
 
     return (
