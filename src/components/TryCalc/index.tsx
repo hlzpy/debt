@@ -28,19 +28,21 @@ const TryCalc = ({
         let totalInterest = 0;
         const rate = form.getFieldValue('rate');
         const resultDate = form.getFieldValue('borrowingDate');
+        const repaidMount = repayment.reduce((p: any, c: any) => p + c.amount, 0);
         const repayments = [
             ...repayment,
-            {
-                date: dayjs(resultDate).format(),
-                amount: totalAmount - repayment.reduce((p: any, c: any) => p + c.amount, 0),
-            },
+            repaidMount >= totalAmount
+                ? {}
+                : {
+                      date: dayjs(resultDate).format(),
+                      amount: totalAmount - repaidMount,
+                  },
         ].sort((a: any, b: any) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf());
         repayments.forEach((item, index) => {
             const day = dayjs(item.date).diff(
-                index === 0 ? borrowingDate : repayments[index -1].date,
+                index === 0 ? borrowingDate : repayments[index - 1].date,
                 'day'
             );
-            console.log(day);
             totalInterest += ((loanAmount * rate) / 100) * (day / 365);
             loanAmount -= item.amount;
         });
@@ -68,13 +70,16 @@ const TryCalc = ({
                 ))}
             </Descriptions>
             <Form form={form} preserve={true}>
-                <Form.Item
-                    name="borrowingDate"
-                    label="预计还款日期"
-                    rules={[{ required: true, message: 'Please enter borrowingDate' }]}
-                >
-                    <DatePicker />
-                </Form.Item>
+                {editingItem?.repayment.reduce((p: any, c: any) => p + c.amount, 0) >=
+                editingItem?.totalAmount ? null : (
+                    <Form.Item
+                        name="borrowingDate"
+                        label="预计还款日期"
+                        rules={[{ required: true, message: 'Please enter borrowingDate' }]}
+                    >
+                        <DatePicker />
+                    </Form.Item>
+                )}
                 <Form.Item
                     name="rate"
                     label="Rate"
@@ -84,7 +89,7 @@ const TryCalc = ({
                 </Form.Item>
             </Form>
             <Button onClick={tryCalc}>TRY CALC</Button>
-            <p>{result}</p>
+            <p className='text-lg bg-orange-100 my-2 w-24 px-4'>{result}</p>
         </Modal>
     );
 };
