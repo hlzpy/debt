@@ -18,6 +18,7 @@ export interface DataType {
     node: string;
     id: number;
     rate: number;
+    realInterest?: number;
 }
 
 const DebtList: React.FC = () => {
@@ -84,8 +85,12 @@ const DebtList: React.FC = () => {
             key: 'tryCalc',
             dataIndex: 'tryCalc',
             render: (_, record) => {
+                const isReturnDone =
+                record.totalAmount -
+                    record.repayment.reduce((pre, cur) => pre + +cur.amount, 0) <=
+                0;
                 const { rate } = record;
-                return calcTry(rate, record, dayjs().format());
+                return `${calcTry(rate, record, dayjs().format())}${isReturnDone ? '/' + record.realInterest : ''}`;
             },
             sorter: (a, b) => {
                 const resultA = calcTry(a.rate, a, dayjs().format());
@@ -116,7 +121,13 @@ const DebtList: React.FC = () => {
         axios
             .get('/data.json')
             .then((response) => {
-                setDebts(response?.data);
+                setDebts(response?.data.sort((a: DataType, b: DataType) => {
+                    const resultA =
+                        a.totalAmount - +a.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                    const resultB =
+                        b.totalAmount - +b.repayment.reduce((pre, cur) => pre + +cur.amount, 0);
+                    return resultA - resultB;
+                }))
             })
             .catch((error) => {
                 // 在这里处理错误
