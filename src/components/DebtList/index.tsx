@@ -22,6 +22,8 @@ export interface DataType {
 }
 
 const DebtList: React.FC = () => {
+    const scrollY = window.innerHeight - 200; // 根据需要进行调整
+
     const columns: ColumnsType<DataType> = [
         {
             title: 'Name',
@@ -167,6 +169,7 @@ const DebtList: React.FC = () => {
                     columns={columns}
                     dataSource={debts}
                     pagination={false}
+                    scroll={{ y: scrollY }}
                     summary={(pageData) => {
                         let totalBorrow = 0;
                         let totalRepayment = 0;
