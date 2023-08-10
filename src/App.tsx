@@ -10,6 +10,7 @@ import './App.css';
 import { Layout, Menu, Button, theme } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import DebtList from './components/DebtList';
+import DebtChart from './components/DebtChart';
 
 const { Header, Sider, Content } = Layout;
 
@@ -26,10 +27,10 @@ const App: React.FC = () => {
                     <div className="demo-logo-vertical" />
                     <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
                         <Menu.Item key="1" icon={<UserOutlined />}>
-                            <Link to="/nav1">nav 1</Link>
+                            <Link to="/list">list</Link>
                         </Menu.Item>
                         <Menu.Item key="2" icon={<VideoCameraOutlined />}>
-                            <Link to="/nav2">nav 2</Link>
+                            <Link to="/chart">chart</Link>
                         </Menu.Item>
                         <Menu.Item key="3" icon={<UploadOutlined />}>
                             <Link to="/nav3">nav 3</Link>
@@ -58,8 +59,8 @@ const App: React.FC = () => {
                         }}
                     >
                         <Routes>
-                            <Route path="/nav1" element={<DebtList />} />
-                            <Route path="/nav2" element={<div>nav2</div>} />
+                            <Route path="/list" element={<DebtList />} />
+                            <Route path="/chart" element={<DebtChart />} />
                             <Route path="/nav3" element={<div>nav3</div>} />
                             <Route path="*" element={<DebtList />} />
                         </Routes>
