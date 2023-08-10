@@ -22,7 +22,7 @@ export interface DataType {
 }
 
 const DebtList: React.FC = () => {
-    const scrollY = window.innerHeight - 200; // 根据需要进行调整
+    const scrollY = window.innerHeight - 250; // 根据需要进行调整
 
     const columns: ColumnsType<DataType> = [
         {
